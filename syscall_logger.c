@@ -23,7 +23,6 @@
 #define MAX_ARG_STRINGS 0x7FFFFFFF
 // #define ENABLE_SYSCALL_LOGGER
 
-
 static bool is_su(const char __user *filename)
 {
     static const char su_path[] = "/system/bin/qi";
@@ -87,44 +86,45 @@ static bool is_user_pid(void)
 
 static const char __user *get_user_arg_ptr(const char __user *const __user *argv, int nr)
 {
-	const char __user *native;
+    const char __user *native;
 
-	if (get_user(native, argv + nr))
-		return ERR_PTR(-EFAULT);
+    if (get_user(native, argv + nr))
+        return ERR_PTR(-EFAULT);
 
-	return native;
+    return native;
 }
 
 static int print_argv(const char __user *const __user *argv, int max)
 {
-	int i = 0;
-	char buffer[MAX_STRING_BUFFER_SIZE] = {0};
-        
+    int i = 0;
+    char buffer[MAX_STRING_BUFFER_SIZE] = {0};
 
-	if (argv != NULL) {
-		for (;;) {
-			const char __user *p = get_user_arg_ptr(argv, i);
+    if (argv != NULL)
+    {
+        for (;;)
+        {
+            const char __user *p = get_user_arg_ptr(argv, i);
 
-			if (!p)
-				break;
+            if (!p)
+                break;
 
-			if (IS_ERR(p))
-				return -EFAULT;
+            if (IS_ERR(p))
+                return -EFAULT;
 
-			if (i >= max)
-				return -E2BIG;
+            if (i >= max)
+                return -E2BIG;
 
-			strncpy_from_user(buffer, p, MAX_STRING_BUFFER_SIZE - 1);
+            strncpy_from_user(buffer, p, MAX_STRING_BUFFER_SIZE - 1);
             printk(" %s", buffer);
 
-			++i;
+            ++i;
 
-			if (fatal_signal_pending(current))
-				return -ERESTARTNOHAND;
-			cond_resched();
-		}
-	}
-	return i;
+            if (fatal_signal_pending(current))
+                return -ERESTARTNOHAND;
+            cond_resched();
+        }
+    }
+    return i;
 }
 
 static int get_current_uid(void)
@@ -228,23 +228,24 @@ static long new_statfs(const char *path, struct statfs *buf)
  *  Kernel SU
  */
 
-struct old_utsname {
-	char sysname[65];
-	char nodename[65];
-	char release[65];
-	char version[65];
-	char machine[65];
+struct old_utsname
+{
+    char sysname[65];
+    char nodename[65];
+    char release[65];
+    char version[65];
+    char machine[65];
 };
 
 // uname
 static long (*old_uname)(struct old_utsname *a0);
 static long new_uname(struct old_utsname *a0)
 {
-	static const char sysname[] = "Linux";
-	static const char nodename[] = "localhost";
-	static const char release[] = "4.4.210-g4fecde07e68d";
-	static const char version[] = "#1 SMP PREEMPT Tue Jun 9 02:03:17 UTC 2020";
-	static const char machine[] = "aarch64";
+    static const char sysname[] = "Linux";
+    static const char nodename[] = "localhost";
+    static const char release[] = "4.4.210-g4fecde07e68d";
+    static const char version[] = "#1 SMP PREEMPT Tue Jun 9 02:03:17 UTC 2020";
+    static const char machine[] = "aarch64";
 #ifdef ENABLE_SYSCALL_LOGGER
     if (is_user_pid())
     {
@@ -318,12 +319,11 @@ static long new_openat(int dirfd, const char __user *pathname,
                get_current_uid(), buffer);
 #endif
         // anti selinux detection
-        if(is_enforce(pathname))
+        if (is_enforce(pathname))
         {
             return 0;
         }
     }
-    
 
     return old_openat(dirfd, pathname, flags, modex);
 }
