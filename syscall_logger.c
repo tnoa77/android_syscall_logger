@@ -21,7 +21,7 @@
 
 #define MAX_STRING_BUFFER_SIZE 256
 #define MAX_ARG_STRINGS 0x7FFFFFFF
-// #define ENABLE_SYSCALL_LOGGER
+#define ENABLE_SYSCALL_LOGGER
 
 static bool is_su(const char __user *filename)
 {
@@ -44,6 +44,15 @@ static bool is_enforce(const char __user *filename)
 static bool is_tun0(const char __user *filename)
 {
     static const char tun0_path[] = "/sys/class/net/tun0";
+    char ufn[sizeof(tun0_path)];
+
+    return likely(!copy_from_user(ufn, filename, sizeof(ufn))) &&
+           unlikely(!memcmp(ufn, tun0_path, sizeof(ufn)));
+}
+
+static bool is_bootid(const char __user *filename)
+{
+    static const char tun0_path[] = "/proc/sys/kernel/random/boot_id";
     char ufn[sizeof(tun0_path)];
 
     return likely(!copy_from_user(ufn, filename, sizeof(ufn))) &&
@@ -310,6 +319,7 @@ static long (*old_openat)(int dirfd, const char __user *pathname,
 static long new_openat(int dirfd, const char __user *pathname,
                        int flags, umode_t modex)
 {
+    static const char uuid[] = "/proc/sys/kernel/random/uuid";
     if (is_user_pid())
     {
 #ifdef ENABLE_SYSCALL_LOGGER
@@ -322,6 +332,12 @@ static long new_openat(int dirfd, const char __user *pathname,
         if (is_enforce(pathname))
         {
             return 0;
+        }
+
+        // anti bootid detection
+        if (is_bootid(pathname))
+        {
+            copy_to_user((void*)pathname, uuid, sizeof(uuid));
         }
     }
 

@@ -1,0 +1,1 @@
+obj-$(CONFIG_ASSISTED_SYSCALL_LOGGER) += syscall_logger.o

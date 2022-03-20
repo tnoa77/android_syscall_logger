@@ -1,0 +1,10 @@
+config ASSISTED_SYSCALL_LOGGER
+	bool "Kernel-assisted superuser and syscall logger"
+	select SECURITY_SELINUX_DEVELOP if SECURITY_SELINUX
+	---help---
+      This driver provides kernel root and syscall logger. You
+      can get root permission by typing `qi` command in a shell.
+      Using `dmesg | grep syscall_logger` command to view traced
+      syscalls.
+
+	  Say N here unless you have a vendetta against kittens.
